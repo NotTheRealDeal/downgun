@@ -3,6 +3,7 @@ package net.ntrdeal.downgun;
 import net.fabricmc.api.ModInitializer;
 
 import net.minecraft.util.Identifier;
+import net.ntrdeal.downgun.registry.ModRegistries;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -12,6 +13,7 @@ public class DownGun implements ModInitializer {
 
 	@Override
 	public void onInitialize() {
+		ModRegistries.register();
 	}
 
 	public static Identifier id(String path) {
