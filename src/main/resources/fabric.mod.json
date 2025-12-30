@@ -3,20 +3,23 @@
 	"id": "downgun",
 	"version": "${version}",
 	"name": "DownGun",
-	"description": "This is an example description! Tell everyone what your mod is about!",
+	"description": "Minecraft Recreation of UpGun.",
 	"authors": [
-		"Me!"
+		"NTRDeal: Coder"
 	],
 	"contact": {
 		"homepage": "https://fabricmc.net/",
-		"sources": "https://github.com/FabricMC/fabric-example-mod"
+		"sources": "https://github.com/NotTheRealDeal/downgun"
 	},
-	"license": "CC0-1.0",
-	"icon": "assets/downgun/icon.png",
+	"license": "MIT",
+	"icon": "icon.png",
 	"environment": "*",
 	"entrypoints": {
 		"main": [
 			"net.ntrdeal.downgun.DownGun"
+		],
+		"client": [
+			"net.ntrdeal.downgun.DownGunClient"
 		],
 		"fabric-datagen": [
 			"net.ntrdeal.downgun.DownGunDataGenerator"
