@@ -1,7 +1,11 @@
 package net.ntrdeal.downgun.mixin;
 
+import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.attribute.DefaultAttributeContainer;
+import net.minecraft.entity.attribute.EntityAttributes;
 import net.minecraft.entity.data.DataTracker;
 import net.minecraft.entity.data.TrackedData;
 import net.minecraft.entity.player.PlayerEntity;
@@ -17,8 +21,8 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+import java.util.HashMap;
 import java.util.Map;
-import java.util.TreeMap;
 
 @Mixin(PlayerEntity.class)
 public abstract class PlayerEntityMixin extends LivingEntity implements CardHolder {
@@ -26,6 +30,13 @@ public abstract class PlayerEntityMixin extends LivingEntity implements CardHold
 
     protected PlayerEntityMixin(EntityType<? extends LivingEntity> entityType, World world) {
         super(entityType, world);
+    }
+
+    @WrapMethod(method = "createPlayerAttributes")
+    private static DefaultAttributeContainer.Builder ntrdeal$reassignAttributes(Operation<DefaultAttributeContainer.Builder> original) {
+        return original.call()
+                .add(EntityAttributes.GENERIC_MAX_HEALTH, 100d)
+                .add(EntityAttributes.GENERIC_FALL_DAMAGE_MULTIPLIER, 0);
     }
 
     @Inject(method = "tick", at = @At("TAIL"))
@@ -36,7 +47,7 @@ public abstract class PlayerEntityMixin extends LivingEntity implements CardHold
 
     @Inject(method = "initDataTracker", at = @At("TAIL"))
     private void ntrdeal$addTrackedCards(DataTracker.Builder builder, CallbackInfo ci) {
-        builder.add(CARDS, new TreeMap<>(Card.SORTED));
+        builder.add(CARDS, new HashMap<>());
     }
 
     @Inject(method = "readCustomDataFromNbt", at = @At("TAIL"))
