@@ -9,6 +9,9 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.util.Identifier;
 import net.ntrdeal.downgun.registry.ModRegistries;
+import org.apache.commons.lang3.mutable.MutableDouble;
+import org.apache.commons.lang3.mutable.MutableFloat;
+import org.apache.commons.lang3.mutable.MutableInt;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
@@ -26,25 +29,15 @@ public interface Card {
 
     default void postHit(PlayerEntity player, Entity target, float damage, int level) {}
 
-    default float damageModifier(PlayerEntity player, @Nullable Entity target, float damage, double distance, int level) {
-        return 0f;
-    }
+    default void damageModifier(PlayerEntity player, @Nullable Entity target, MutableFloat damage, double distance, int level) {}
 
-    default double gravityModifier(PlayerEntity player, double gravity, int level) {
-        return 0d;
-    }
+    default void gravityModifier(PlayerEntity player, MutableDouble gravity, int level) {}
 
-    default float divergenceModifier(PlayerEntity player, float divergence, int level) {
-        return 0f;
-    }
+    default void divergenceModifier(PlayerEntity player, MutableFloat divergence, int level) {}
 
-    default float speedModifier(PlayerEntity player, float speed, int level) {
-        return 0f;
-    }
+    default void speedModifier(PlayerEntity player, MutableFloat speed, int level) {}
 
-    default int bounceModifier(PlayerEntity player, int bounces, int level) {
-        return 0;
-    }
+    default void bounceModifier(PlayerEntity player, MutableInt bounces, int level) {}
 
     @Nullable
     default Map<RegistryEntry<EntityAttribute>, AttributeInstance> attributeMap() {

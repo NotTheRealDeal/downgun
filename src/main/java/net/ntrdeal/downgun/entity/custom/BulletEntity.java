@@ -14,12 +14,12 @@ import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.hit.EntityHitResult;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
-import net.ntrdeal.downgun.card.Card;
 import net.ntrdeal.downgun.entity.ModEntities;
 import net.ntrdeal.downgun.misc.CardHolder;
+import org.apache.commons.lang3.mutable.MutableDouble;
+import org.apache.commons.lang3.mutable.MutableFloat;
+import org.apache.commons.lang3.mutable.MutableInt;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.Map;
 
 public class BulletEntity extends PersistentProjectileEntity {
     public Vec3d startingPos = Vec3d.ZERO;
@@ -55,6 +55,7 @@ public class BulletEntity extends PersistentProjectileEntity {
             if (owner instanceof PlayerEntity player && player instanceof CardHolder holder) {
                 holder.ntrdeal$getCards().forEach((key, value) -> key.postHit(player, entity, damage, value));
             }
+            System.out.println(damage);
         }
         this.discard();
     }
@@ -62,11 +63,9 @@ public class BulletEntity extends PersistentProjectileEntity {
     @Override
     protected void onBlockHit(BlockHitResult blockHitResult) {
         if (this.getOwner() instanceof PlayerEntity player && player instanceof CardHolder holder) {
-            int maxBounces = 0;
-            for (Map.Entry<Card, Integer> entry : holder.ntrdeal$getLayeredCards().entrySet()) {
-                maxBounces += entry.getKey().bounceModifier(player, maxBounces, entry.getValue());
-            }
-            if (this.bounces >= maxBounces) this.discard();
+            MutableInt maxBounces = new MutableInt(0);
+            holder.ntrdeal$getLayeredCards().forEach(entry -> entry.getKey().bounceModifier(player, maxBounces, entry.getValue()));
+            if (this.bounces >= maxBounces.getValue()) this.discard();
             else {
                 Vec3d velocity = this.getVelocity();
                 if (blockHitResult.getSide().getAxis().isHorizontal()) {
@@ -81,25 +80,21 @@ public class BulletEntity extends PersistentProjectileEntity {
     }
 
     public float getBulletDamage(@Nullable Entity target, Vec3d hitPos) {
-        float damage = 2f;
+        MutableFloat damage = new MutableFloat(14f);
         if (this.getOwner() instanceof PlayerEntity player && player instanceof CardHolder holder) {
             double distance = this.startingPos.distanceTo(hitPos);
-            for (Map.Entry<Card, Integer> entry : holder.ntrdeal$getLayeredCards().entrySet()) {
-                damage += entry.getKey().damageModifier(player, target, damage, distance, entry.getValue());
-            }
+            holder.ntrdeal$getLayeredCards().forEach(entry -> entry.getKey().damageModifier(player, target, damage, distance, entry.getValue()));
         }
-        return damage;
+        return damage.getValue();
     }
 
     @Override
     protected double getGravity() {
-        double gravity = 0d;
+        MutableDouble gravity = new MutableDouble(0d);
         if (this.getOwner() instanceof PlayerEntity player && player instanceof CardHolder holder) {
-            for (Card card : holder.ntrdeal$getLayeredCards().keySet()) {
-                gravity += card.gravityModifier(player, gravity, holder.ntrdeal$getCards().get(card));
-            }
+            holder.ntrdeal$getLayeredCards().forEach(entry -> entry.getKey().gravityModifier(player, gravity, entry.getValue()));
         }
-        return gravity;
+        return gravity.getValue();
     }
 
     @Override

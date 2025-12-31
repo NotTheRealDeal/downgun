@@ -41,7 +41,7 @@ public abstract class PlayerEntityMixin extends LivingEntity implements CardHold
     @Inject(method = "tick", at = @At("TAIL"))
     private void ntrdeal$tickCards(CallbackInfo ci) {
         PlayerEntity player = (PlayerEntity)(Object)this;
-        this.ntrdeal$getLayeredCards().forEach((card, level) -> card.tick(player, level));
+        this.ntrdeal$getLayeredCards().forEach(entry -> entry.getKey().tick(player, entry.getValue()));
     }
 
     @Inject(method = "initDataTracker", at = @At("TAIL"))
@@ -61,7 +61,7 @@ public abstract class PlayerEntityMixin extends LivingEntity implements CardHold
 
     @Override
     public void ntrdeal$setCards(Map<Card, Integer> cards) {
-        this.dataTracker.set(CARDS, cards);
+        this.dataTracker.set(CARDS, new HashMap<>(cards));
     }
 
     @Override

@@ -13,7 +13,9 @@ import net.minecraft.world.World;
 import net.ntrdeal.downgun.card.Card;
 import net.ntrdeal.downgun.entity.custom.BulletEntity;
 import net.ntrdeal.downgun.misc.CardHolder;
+import org.apache.commons.lang3.mutable.MutableFloat;
 
+import java.util.List;
 import java.util.Map;
 
 public class TestingGunItem extends Item implements ProjectileItem {
@@ -25,15 +27,12 @@ public class TestingGunItem extends Item implements ProjectileItem {
     public TypedActionResult<ItemStack> use(World world, PlayerEntity player, Hand hand) {
         ItemStack stack = player.getStackInHand(hand);
         if (!world.isClient() && player instanceof CardHolder holder) {
-            float divergence = 2.5f, speed = 2.5f;
-            for (Map.Entry<Card, Integer> entry : holder.ntrdeal$getLayeredCards().entrySet()) {
-                divergence += entry.getKey().divergenceModifier(player, divergence, entry.getValue());
-            }
-            for (Map.Entry<Card, Integer> entry : holder.ntrdeal$getLayeredCards().entrySet()) {
-                speed += entry.getKey().speedModifier(player, speed, entry.getValue());
-            }
+            MutableFloat divergence = new MutableFloat(2.5f), speed = new MutableFloat(2.5f);
+            List<Map.Entry<Card, Integer>> layeredCards = holder.ntrdeal$getLayeredCards();
+            layeredCards.forEach(entry -> entry.getKey().divergenceModifier(player, divergence, entry.getValue()));
+            layeredCards.forEach(entry -> entry.getKey().speedModifier(player, speed, entry.getValue()));
             BulletEntity bullet = new BulletEntity(player, world, stack);
-            bullet.setVelocity(player, player.getPitch(), player.getYaw(), 0f, speed, Math.max(divergence, 0f));
+            bullet.setVelocity(player, player.getPitch(), player.getYaw(), 0f, speed.getValue(), Math.max(divergence.getValue(), 0f));
             world.spawnEntity(bullet);
         }
         return TypedActionResult.success(stack);

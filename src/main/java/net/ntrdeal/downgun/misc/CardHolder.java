@@ -12,10 +12,8 @@ public interface CardHolder {
     Map<Card, Integer> ntrdeal$getCards();
     PlayerEntity ntrdeal$player();
 
-    default Map<Card, Integer> ntrdeal$getLayeredCards() {
-        Map<Card, Integer> sortedMap = new TreeMap<>(Comparator.comparing(Card::layer));
-        sortedMap.putAll(this.ntrdeal$getCards());
-        return sortedMap;
+    default List<Map.Entry<Card, Integer>> ntrdeal$getLayeredCards() {
+        return this.ntrdeal$getCards().entrySet().stream().sorted(Comparator.comparing(entry -> entry.getKey().layer())).toList();
     }
 
     default Set<RegistryKey<Card>> ntrdeal$getCardKeys() {
@@ -43,7 +41,7 @@ public interface CardHolder {
     default boolean ntrdeal$resetCards() {
         if (this.ntrdeal$getCards().isEmpty()) return false;
         else {
-            this.ntrdeal$setCards(new HashMap<>());
+            this.ntrdeal$getCards().forEach((card, integer) -> this.ntrdeal$removeCard(card));
             return true;
         }
     }
