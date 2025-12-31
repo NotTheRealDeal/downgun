@@ -27,13 +27,11 @@ public class TestingGunItem extends Item implements ProjectileItem {
     public TypedActionResult<ItemStack> use(World world, PlayerEntity player, Hand hand) {
         ItemStack stack = player.getStackInHand(hand);
         if (!world.isClient() && player instanceof CardHolder holder) {
-            MutableFloat divergence = new MutableFloat(2.5f), speed = new MutableFloat(2.5f);
             List<Map.Entry<Card, Integer>> layeredCards = holder.ntrdeal$getLayeredCards();
+            MutableFloat divergence = new MutableFloat(2.5f), speed = new MutableFloat(2.5f);
             layeredCards.forEach(entry -> entry.getKey().divergenceModifier(player, divergence, entry.getValue()));
             layeredCards.forEach(entry -> entry.getKey().speedModifier(player, speed, entry.getValue()));
-            BulletEntity bullet = new BulletEntity(player, world, stack);
-            bullet.setVelocity(player, player.getPitch(), player.getYaw(), 0f, speed.getValue(), Math.max(divergence.getValue(), 0f));
-            world.spawnEntity(bullet);
+            world.spawnEntity(new BulletEntity(player, world, stack, speed.getValue(), Math.max(divergence.getValue(), 0f), false));
         }
         return TypedActionResult.success(stack);
     }

@@ -24,22 +24,37 @@ import org.jetbrains.annotations.Nullable;
 public class BulletEntity extends PersistentProjectileEntity {
     public Vec3d startingPos = Vec3d.ZERO;
     public int bounces = 0;
+    public final boolean multishotBullet;
 
     public BulletEntity(EntityType<BulletEntity> type, World world) {
         super(type, world);
+        this.multishotBullet = true;
         this.pickupType = PickupPermission.DISALLOWED;
     }
 
     public BulletEntity(double x, double y, double z, World world) {
         super(ModEntities.BULLET_ENTITY, x, y, z, world, Items.IRON_NUGGET.getDefaultStack(), Items.IRON_NUGGET.getDefaultStack());
+        this.multishotBullet = true;
         this.pickupType = PickupPermission.DISALLOWED;
         this.startingPos = this.getPos();
     }
 
-    public BulletEntity(LivingEntity owner, World world, @Nullable ItemStack shotFrom) {
+    public BulletEntity(LivingEntity owner, World world, @Nullable ItemStack shotFrom, float speed, float divergence, boolean multishot) {
         super(ModEntities.BULLET_ENTITY, owner, world, Items.IRON_NUGGET.getDefaultStack(), shotFrom);
+        this.multishotBullet = multishot;
         this.pickupType = PickupPermission.DISALLOWED;
         this.startingPos = this.getPos();
+        this.setVelocity(owner, owner.getPitch(), owner.getYaw(), 0f, speed, divergence);
+
+        if (!this.multishotBullet) {
+            MutableInt multishotCount = new MutableInt(0);
+            if (this.getOwner() instanceof PlayerEntity player && player instanceof CardHolder holder) {
+                holder.ntrdeal$getLayeredCards().forEach(entry -> entry.getKey().shootCountModifier(player, multishotCount, entry.getValue()));
+                for (int count = 0; count < multishotCount.getValue(); count++) {
+                    world.spawnEntity(new BulletEntity(player, world, shotFrom, speed, divergence, true));
+                }
+            }
+        }
     }
 
     @Override

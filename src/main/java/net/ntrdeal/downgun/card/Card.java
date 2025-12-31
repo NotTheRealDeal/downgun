@@ -32,14 +32,11 @@ public interface Card {
     default void onHit(PlayerEntity player, DamageSource source, float damage, int level) {}
 
     default void damageModifier(PlayerEntity player, @Nullable Entity target, MutableFloat damage, double distance, int level) {}
-
     default void gravityModifier(PlayerEntity player, MutableDouble gravity, int level) {}
-
     default void divergenceModifier(PlayerEntity player, MutableFloat divergence, int level) {}
-
     default void speedModifier(PlayerEntity player, MutableFloat speed, int level) {}
-
     default void bounceModifier(PlayerEntity player, MutableInt bounces, int level) {}
+    default void shootCountModifier(PlayerEntity player, MutableInt count, int level) {}
 
     @Nullable
     default Map<RegistryEntry<EntityAttribute>, AttributeInstance> attributeMap() {
