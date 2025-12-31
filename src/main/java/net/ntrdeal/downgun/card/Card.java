@@ -31,7 +31,8 @@ public interface Card {
     default void postHit(PlayerEntity player, Entity target, float damage, int level) {}
     default void onHit(PlayerEntity player, DamageSource source, float damage, int level) {}
 
-    default void damageModifier(PlayerEntity player, @Nullable Entity target, MutableFloat damage, double distance, int level) {}
+    default void damageModifier(PlayerEntity player, @Nullable Entity target, MutableFloat damage, double distance, boolean headshot, int level) {}
+    default void incomingDamageModifier(PlayerEntity target, @Nullable Entity attacker, MutableFloat damage, double distance, boolean headshot, int level) {}
     default void gravityModifier(PlayerEntity player, MutableDouble gravity, int level) {}
     default void divergenceModifier(PlayerEntity player, MutableFloat divergence, int level) {}
     default void speedModifier(PlayerEntity player, MutableFloat speed, int level) {}

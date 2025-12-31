@@ -12,6 +12,7 @@ import net.minecraft.item.Items;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.hit.EntityHitResult;
+import net.minecraft.util.math.Box;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import net.ntrdeal.downgun.entity.ModDamageSources;
@@ -59,6 +60,12 @@ public class BulletEntity extends PersistentProjectileEntity {
     }
 
     @Override
+    public void tick() {
+        if (this.age >= 500) this.discard();
+        super.tick();
+    }
+
+    @Override
     protected void onEntityHit(EntityHitResult entityHitResult) {
         Entity entity = entityHitResult.getEntity();
         DamageSource damageSource = ModDamageSources.of(this).bullet(this, this.getOwner());
@@ -96,10 +103,15 @@ public class BulletEntity extends PersistentProjectileEntity {
 
     public float getBulletDamage(@Nullable Entity target, Vec3d hitPos) {
         MutableFloat damage = new MutableFloat(14f);
+        double distance = this.startingPos.distanceTo(hitPos);
+        boolean headshot = target != null && this.getBoundingBox().intersects(new Box(target.getEyePos(), target.getEyePos()).expand(target.getWidth(), 0.01f, target.getWidth()));
         if (this.getOwner() instanceof PlayerEntity player && player instanceof CardHolder holder) {
-            double distance = this.startingPos.distanceTo(hitPos);
-            holder.ntrdeal$getLayeredCards().forEach(entry -> entry.getKey().damageModifier(player, target, damage, distance, entry.getValue()));
+            holder.ntrdeal$getLayeredCards().forEach(entry -> entry.getKey().damageModifier(player, target, damage, distance, headshot, entry.getValue()));
         }
+        if (target instanceof PlayerEntity player && player instanceof CardHolder holder) {
+            holder.ntrdeal$getLayeredCards().forEach(entry -> entry.getKey().incomingDamageModifier(player, this.getOwner(), damage, distance, headshot, entry.getValue()));
+        }
+        System.out.println(headshot);
         return Math.max(damage.getValue(), 1f);
     }
 

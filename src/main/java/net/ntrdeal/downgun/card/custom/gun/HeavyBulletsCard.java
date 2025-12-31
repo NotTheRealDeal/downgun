@@ -9,7 +9,7 @@ import org.jetbrains.annotations.Nullable;
 
 public class HeavyBulletsCard implements Card {
     @Override
-    public void damageModifier(PlayerEntity player, @Nullable Entity target, MutableFloat damage, double distance, int level) {
+    public void damageModifier(PlayerEntity player, @Nullable Entity target, MutableFloat damage, double distance, boolean headshot, int level) {
         damage.add((damage.getValue() * 0.25f) * level);
     }
 
