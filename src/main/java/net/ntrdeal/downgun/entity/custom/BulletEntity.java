@@ -19,11 +19,9 @@ import net.ntrdeal.downgun.entity.ModEntities;
 import net.ntrdeal.downgun.misc.CardHolder;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Comparator;
 import java.util.Map;
 
 public class BulletEntity extends PersistentProjectileEntity {
-    public static final Comparator<Map.Entry<Card, Integer>> SORTER = Comparator.comparingInt(entry -> entry.getKey().layer());
     public Vec3d startingPos = Vec3d.ZERO;
     public int bounces = 0;
 
@@ -35,13 +33,13 @@ public class BulletEntity extends PersistentProjectileEntity {
     public BulletEntity(double x, double y, double z, World world) {
         super(ModEntities.BULLET_ENTITY, x, y, z, world, Items.IRON_NUGGET.getDefaultStack(), Items.IRON_NUGGET.getDefaultStack());
         this.pickupType = PickupPermission.DISALLOWED;
-        this.startingPos = new Vec3d(x, y, z);
+        this.startingPos = this.getPos();
     }
 
     public BulletEntity(LivingEntity owner, World world, @Nullable ItemStack shotFrom) {
         super(ModEntities.BULLET_ENTITY, owner, world, Items.IRON_NUGGET.getDefaultStack(), shotFrom);
         this.pickupType = PickupPermission.DISALLOWED;
-        this.startingPos = new Vec3d(owner.getX(), owner.getEyeY() - 0.1F, owner.getZ());
+        this.startingPos = this.getPos();
     }
 
     @Override
@@ -63,15 +61,23 @@ public class BulletEntity extends PersistentProjectileEntity {
 
     @Override
     protected void onBlockHit(BlockHitResult blockHitResult) {
-        Vec3d velocity = this.getVelocity();
-        if (blockHitResult.getSide().getAxis().isHorizontal()) {
-            this.setVelocity(-velocity.getX(), velocity.getY(), -velocity.getZ());
-        }
-        if (blockHitResult.getSide().getAxis().isVertical()) {
-            this.setVelocity(velocity.getX(), -velocity.getY(), velocity.getZ());
-        }
-        this.bounces++;
-//        super.onBlockHit(blockHitResult);
+        if (this.getOwner() instanceof PlayerEntity player && player instanceof CardHolder holder) {
+            int maxBounces = 0;
+            for (Map.Entry<Card, Integer> entry : holder.ntrdeal$getLayeredCards().entrySet()) {
+                maxBounces += entry.getKey().bounceModifier(player, maxBounces, entry.getValue());
+            }
+            if (this.bounces >= maxBounces) this.discard();
+            else {
+                Vec3d velocity = this.getVelocity();
+                if (blockHitResult.getSide().getAxis().isHorizontal()) {
+                    this.setVelocity(-velocity.getX(), velocity.getY(), -velocity.getZ());
+                }
+                if (blockHitResult.getSide().getAxis().isVertical()) {
+                    this.setVelocity(velocity.getX(), -velocity.getY(), velocity.getZ());
+                }
+                this.bounces++;
+            }
+        } else this.discard();
     }
 
     public float getBulletDamage(@Nullable Entity target, Vec3d hitPos) {

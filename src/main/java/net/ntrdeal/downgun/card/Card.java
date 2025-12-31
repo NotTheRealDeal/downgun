@@ -36,4 +36,8 @@ public interface Card {
     default float speedModifier(PlayerEntity player, float speed, int level) {
         return 0f;
     }
+
+    default int bounceModifier(PlayerEntity player, int bounces, int level) {
+        return 0;
+    }
 }
