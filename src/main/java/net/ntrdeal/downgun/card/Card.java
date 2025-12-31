@@ -18,11 +18,21 @@ public interface Card {
 
     default void tick(PlayerEntity player, int level) {}
 
+    default void postHit(PlayerEntity player, Entity target, int level) {}
+
     default float damageModifier(PlayerEntity player, @Nullable Entity target, float damage, double distance, int level) {
         return 0f;
     }
 
     default double gravityModifier(PlayerEntity player, double gravity, int level) {
         return 0d;
+    }
+
+    default float divergenceModifier(PlayerEntity player, float divergence, int level) {
+        return 0f;
+    }
+
+    default float speedModifier(PlayerEntity player, float speed, int level) {
+        return 0f;
     }
 }

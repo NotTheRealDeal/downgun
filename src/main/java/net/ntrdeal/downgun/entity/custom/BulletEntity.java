@@ -25,6 +25,7 @@ import java.util.Map;
 public class BulletEntity extends PersistentProjectileEntity {
     public static final Comparator<Map.Entry<Card, Integer>> SORTER = Comparator.comparingInt(entry -> entry.getKey().layer());
     public Vec3d startingPos = Vec3d.ZERO;
+    public int bounces = 0;
 
     public BulletEntity(EntityType<BulletEntity> type, World world) {
         super(type, world);
@@ -49,23 +50,36 @@ public class BulletEntity extends PersistentProjectileEntity {
         DamageSource damageSource = this.getDamageSources().arrow(this, this.getOwner());
         ServerWorld world = this.getWorld() instanceof ServerWorld serverWorld ? serverWorld : null;
         float damage = this.getBulletDamage(entity, entityHitResult.getPos());
+        Entity owner = this.getOwner();
         if (world != null) damage = EnchantmentHelper.getDamage(world, this.getWeaponStack(), entity, damageSource, damage);
         if (entity.damage(damageSource, damage)) {
             if (entity.getType().equals(EntityType.ENDERMAN)) return;
             if (world != null) EnchantmentHelper.onTargetDamaged(world, entity, damageSource, this.getWeaponStack());
+            if (owner instanceof PlayerEntity player && player instanceof CardHolder holder) {
+                holder.ntrdeal$getCards().forEach((key, value) -> key.postHit(player, entity, value));
+            }
+            this.discard();
         }
     }
 
     @Override
     protected void onBlockHit(BlockHitResult blockHitResult) {
-        super.onBlockHit(blockHitResult);
+        Vec3d velocity = this.getVelocity();
+        if (blockHitResult.getSide().getAxis().isHorizontal()) {
+            this.setVelocity(-velocity.getX(), velocity.getY(), -velocity.getZ());
+        }
+        if (blockHitResult.getSide().getAxis().isVertical()) {
+            this.setVelocity(velocity.getX(), -velocity.getY(), velocity.getZ());
+        }
+        this.bounces++;
+//        super.onBlockHit(blockHitResult);
     }
 
     public float getBulletDamage(@Nullable Entity target, Vec3d hitPos) {
         float damage = 2f;
         if (this.getOwner() instanceof PlayerEntity player && player instanceof CardHolder holder) {
             double distance = this.startingPos.distanceTo(hitPos);
-            for (Map.Entry<Card, Integer> entry : holder.ntrdeal$getCards().entrySet().stream().sorted(SORTER).toList()) {
+            for (Map.Entry<Card, Integer> entry : holder.ntrdeal$getLayeredCards().entrySet()) {
                 damage += entry.getKey().damageModifier(player, target, damage, distance, entry.getValue());
             }
         }
@@ -76,7 +90,7 @@ public class BulletEntity extends PersistentProjectileEntity {
     protected double getGravity() {
         double gravity = 0d;
         if (this.getOwner() instanceof PlayerEntity player && player instanceof CardHolder holder) {
-            for (Card card : holder.ntrdeal$getCards().keySet()) {
+            for (Card card : holder.ntrdeal$getLayeredCards().keySet()) {
                 gravity += card.gravityModifier(player, gravity, holder.ntrdeal$getCards().get(card));
             }
         }

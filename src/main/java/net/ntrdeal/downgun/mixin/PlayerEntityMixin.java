@@ -35,14 +35,13 @@ public abstract class PlayerEntityMixin extends LivingEntity implements CardHold
     @WrapMethod(method = "createPlayerAttributes")
     private static DefaultAttributeContainer.Builder ntrdeal$reassignAttributes(Operation<DefaultAttributeContainer.Builder> original) {
         return original.call()
-                .add(EntityAttributes.GENERIC_MAX_HEALTH, 100d)
-                .add(EntityAttributes.GENERIC_FALL_DAMAGE_MULTIPLIER, 0);
+                .add(EntityAttributes.GENERIC_MAX_HEALTH, 100d);
     }
 
     @Inject(method = "tick", at = @At("TAIL"))
     private void ntrdeal$tickCards(CallbackInfo ci) {
         PlayerEntity player = (PlayerEntity)(Object)this;
-        this.ntrdeal$getCards().forEach((card, level) -> card.tick(player, level));
+        this.ntrdeal$getLayeredCards().forEach((card, level) -> card.tick(player, level));
     }
 
     @Inject(method = "initDataTracker", at = @At("TAIL"))

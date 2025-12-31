@@ -4,14 +4,17 @@ import net.minecraft.registry.RegistryKey;
 import net.ntrdeal.downgun.card.Card;
 import net.ntrdeal.downgun.registry.ModRegistries;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public interface CardHolder {
     void ntrdeal$setCards(Map<Card, Integer> cards);
     Map<Card, Integer> ntrdeal$getCards();
+
+    default Map<Card, Integer> ntrdeal$getLayeredCards() {
+        Map<Card, Integer> sortedMap = new TreeMap<>(Comparator.comparing(Card::layer));
+        sortedMap.putAll(this.ntrdeal$getCards());
+        return sortedMap;
+    }
 
     default Set<RegistryKey<Card>> ntrdeal$getCardKeys() {
         Set<RegistryKey<Card>> cards = new HashSet<>();

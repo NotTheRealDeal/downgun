@@ -6,6 +6,7 @@ import net.ntrdeal.downgun.card.ModCards;
 import net.ntrdeal.downgun.command.ModCommands;
 import net.ntrdeal.downgun.entity.ModEntities;
 import net.ntrdeal.downgun.item.ModItems;
+import net.ntrdeal.downgun.misc.ModEvents;
 import net.ntrdeal.downgun.misc.ModGameRules;
 import net.ntrdeal.downgun.network.ModTrackedData;
 import net.ntrdeal.downgun.registry.ModRegistries;
@@ -25,6 +26,7 @@ public class DownGun implements ModInitializer {
 		ModItems.register();
 		ModGameRules.register();
 		ModCommands.register();
+		ModEvents.register();
 	}
 
 	public static Identifier id(String path) {
