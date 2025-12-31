@@ -8,6 +8,6 @@ import org.jetbrains.annotations.Nullable;
 public class SharpBulletsCard implements Card {
     @Override
     public float damageModifier(PlayerEntity player, @Nullable Entity target, float damage, double distance, int level) {
-        return 3 * level;
+        return 4 * level;
     }
 }
