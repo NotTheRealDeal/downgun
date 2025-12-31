@@ -51,12 +51,11 @@ public class BulletEntity extends PersistentProjectileEntity {
         ServerWorld world = this.getWorld() instanceof ServerWorld serverWorld ? serverWorld : null;
         float damage = this.getBulletDamage(entity, entityHitResult.getPos());
         Entity owner = this.getOwner();
-        if (world != null) damage = EnchantmentHelper.getDamage(world, this.getWeaponStack(), entity, damageSource, damage);
         if (entity.damage(damageSource, damage)) {
             if (entity.getType().equals(EntityType.ENDERMAN)) return;
             if (world != null) EnchantmentHelper.onTargetDamaged(world, entity, damageSource, this.getWeaponStack());
             if (owner instanceof PlayerEntity player && player instanceof CardHolder holder) {
-                holder.ntrdeal$getCards().forEach((key, value) -> key.postHit(player, entity, value));
+                holder.ntrdeal$getCards().forEach((key, value) -> key.postHit(player, entity, damage, value));
             }
             this.discard();
         }

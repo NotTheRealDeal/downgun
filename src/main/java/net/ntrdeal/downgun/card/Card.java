@@ -18,7 +18,7 @@ public interface Card {
 
     default void tick(PlayerEntity player, int level) {}
 
-    default void postHit(PlayerEntity player, Entity target, int level) {}
+    default void postHit(PlayerEntity player, Entity target, float damage, int level) {}
 
     default float damageModifier(PlayerEntity player, @Nullable Entity target, float damage, double distance, int level) {
         return 0f;
