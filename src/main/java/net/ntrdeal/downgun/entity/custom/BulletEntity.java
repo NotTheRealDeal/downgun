@@ -55,8 +55,8 @@ public class BulletEntity extends PersistentProjectileEntity {
             if (owner instanceof PlayerEntity player && player instanceof CardHolder holder) {
                 holder.ntrdeal$getCards().forEach((key, value) -> key.postHit(player, entity, damage, value));
             }
-            this.discard();
         }
+        this.discard();
     }
 
     @Override

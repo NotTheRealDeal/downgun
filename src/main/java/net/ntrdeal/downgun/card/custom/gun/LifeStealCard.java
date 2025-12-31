@@ -8,7 +8,8 @@ import org.jetbrains.annotations.Nullable;
 public class LifeStealCard implements Card {
     @Override
     public float damageModifier(PlayerEntity player, @Nullable Entity target, float damage, double distance, int level) {
-        return -3 * level;}
+        return -3 * level;
+    }
 
     @Override
     public void postHit(PlayerEntity player, Entity target, float damage, int level) {

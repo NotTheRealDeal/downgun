@@ -68,4 +68,9 @@ public abstract class PlayerEntityMixin extends LivingEntity implements CardHold
     public Map<Card, Integer> ntrdeal$getCards() {
         return this.dataTracker.get(CARDS);
     }
+
+    @Override
+    public PlayerEntity ntrdeal$player() {
+        return (PlayerEntity)(Object)this;
+    }
 }

@@ -15,6 +15,7 @@ public class ModCards {
     public static final SharpBulletsCard SHARP_BULLETS = register("sharp_bullets", new SharpBulletsCard());
     public static final LifeStealCard LIFE_STEAL = register("life_steal", new LifeStealCard());
     public static final RicochetCard RICOCHET = register("ricochet", new RicochetCard());
+    public static final SteelBoltsCard STEEL_BOLTS = register("steel_bolts", new SteelBoltsCard());
 
     public static <T extends Card> T register(String name, T card) {
         return Registry.register(ModRegistries.CARDS, DownGun.id(name), card);
