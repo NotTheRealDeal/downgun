@@ -24,6 +24,7 @@ public interface Card {
         return 0f;
     }
 
+
     default double gravityModifier(PlayerEntity player, double gravity, int level) {
         return 0d;
     }

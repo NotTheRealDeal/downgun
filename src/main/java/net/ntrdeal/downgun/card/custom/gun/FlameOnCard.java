@@ -6,7 +6,7 @@ import net.ntrdeal.downgun.card.Card;
 
 public class FlameOnCard implements Card {
     @Override
-    public void postHit(PlayerEntity player, Entity target, int level) {
+    public void postHit(PlayerEntity player, Entity target, float damage, int level) {
         target.setOnFireFor(2f * level);
     }
 }
