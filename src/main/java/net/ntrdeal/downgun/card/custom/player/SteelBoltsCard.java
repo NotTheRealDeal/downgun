@@ -1,4 +1,4 @@
-package net.ntrdeal.downgun.card.custom.gun;
+package net.ntrdeal.downgun.card.custom.player;
 
 import net.minecraft.entity.attribute.EntityAttributeModifier;
 import net.minecraft.entity.attribute.EntityAttributes;
