@@ -63,6 +63,7 @@ public interface Card {
                 EntityAttributeInstance entityAttributeInstance = player.getAttributes().getCustomInstance(entry.getKey());
                 if (entityAttributeInstance != null) {
                     entityAttributeInstance.removeModifier(entry.getValue().id());
+                    entityAttributeInstance.addPersistentModifier(entry.getValue().createAttributeModifier(player, level));
                 }
             }
         }
@@ -74,7 +75,6 @@ public interface Card {
                 EntityAttributeInstance entityAttributeInstance = player.getAttributes().getCustomInstance(entry.getKey());
                 if (entityAttributeInstance != null) {
                     entityAttributeInstance.removeModifier(entry.getValue().id());
-                    entityAttributeInstance.addPersistentModifier(entry.getValue().createAttributeModifier(player, level));
                 }
             }
         }
