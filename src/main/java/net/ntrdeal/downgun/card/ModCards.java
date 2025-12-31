@@ -21,7 +21,7 @@ public class ModCards {
     public static final SteelBoltsCard STEEL_BOLTS = register("steel_bolts", new SteelBoltsCard());
     public static final SuperJumpCard SUPER_JUMP = register("super_jump", new SuperJumpCard());
     public static final HealthBoostCard HEALTH_BOOST = register("health_boost", new HealthBoostCard());
-    public static final MultiShotCard MULTI_SHOT = register("multi_shot", new MultiShotCard());
+    public static final MultishotCard MULTISHOT = register("multishot", new MultishotCard());
 
     public static <T extends Card> T register(String name, T card) {
         return Registry.register(ModRegistries.CARDS, DownGun.id(name), card);

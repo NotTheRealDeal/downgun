@@ -7,13 +7,19 @@ import org.apache.commons.lang3.mutable.MutableFloat;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.jetbrains.annotations.Nullable;
 
-public class MultiShotCard implements Card {
+public class MultishotCard implements Card {
     @Override
     public void damageModifier(PlayerEntity player, @Nullable Entity target, MutableFloat damage, double distance, int level) {
-        damage.subtract(2f * level);
+        damage.subtract(3.5f * level);
     }
+
     @Override
     public void shootCountModifier(PlayerEntity player, MutableInt count, int level) {
         count.add(level);
+    }
+
+    @Override
+    public void divergenceModifier(PlayerEntity player, MutableFloat divergence, int level) {
+        divergence.add(0.5f * level);
     }
 }
