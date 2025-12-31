@@ -5,6 +5,7 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.attribute.EntityAttribute;
 import net.minecraft.entity.attribute.EntityAttributeInstance;
 import net.minecraft.entity.attribute.EntityAttributeModifier;
+import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.util.Identifier;
@@ -28,6 +29,7 @@ public interface Card {
     default void tick(PlayerEntity player, int level) {}
 
     default void postHit(PlayerEntity player, Entity target, float damage, int level) {}
+    default void onHit(PlayerEntity player, DamageSource source, float damage, int level) {}
 
     default void damageModifier(PlayerEntity player, @Nullable Entity target, MutableFloat damage, double distance, int level) {}
 
