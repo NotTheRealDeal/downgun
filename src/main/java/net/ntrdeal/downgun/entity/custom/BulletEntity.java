@@ -14,6 +14,7 @@ import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.hit.EntityHitResult;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
+import net.ntrdeal.downgun.entity.ModDamageSources;
 import net.ntrdeal.downgun.entity.ModEntities;
 import net.ntrdeal.downgun.misc.CardHolder;
 import org.apache.commons.lang3.mutable.MutableDouble;
@@ -60,7 +61,7 @@ public class BulletEntity extends PersistentProjectileEntity {
     @Override
     protected void onEntityHit(EntityHitResult entityHitResult) {
         Entity entity = entityHitResult.getEntity();
-        DamageSource damageSource = this.getDamageSources().arrow(this, this.getOwner());
+        DamageSource damageSource = ModDamageSources.of(this).bullet(this, this.getOwner());
         ServerWorld world = this.getWorld() instanceof ServerWorld serverWorld ? serverWorld : null;
         float damage = this.getBulletDamage(entity, entityHitResult.getPos());
         Entity owner = this.getOwner();
@@ -70,7 +71,6 @@ public class BulletEntity extends PersistentProjectileEntity {
             if (owner instanceof PlayerEntity player && player instanceof CardHolder holder) {
                 holder.ntrdeal$getCards().forEach((key, value) -> key.postHit(player, entity, damage, value));
             }
-            System.out.println(damage);
         }
         this.discard();
     }
@@ -100,7 +100,7 @@ public class BulletEntity extends PersistentProjectileEntity {
             double distance = this.startingPos.distanceTo(hitPos);
             holder.ntrdeal$getLayeredCards().forEach(entry -> entry.getKey().damageModifier(player, target, damage, distance, entry.getValue()));
         }
-        return damage.getValue();
+        return Math.max(damage.getValue(), 1f);
     }
 
     @Override
