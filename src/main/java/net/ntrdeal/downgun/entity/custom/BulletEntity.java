@@ -7,6 +7,7 @@ import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.projectile.PersistentProjectileEntity;
+import net.minecraft.entity.projectile.ProjectileEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.server.world.ServerWorld;
@@ -101,18 +102,11 @@ public class BulletEntity extends PersistentProjectileEntity {
         } else this.discard();
     }
 
-    public float getBulletDamage(@Nullable Entity target, Vec3d hitPos) {
-        MutableFloat damage = new MutableFloat(14f);
-        double distance = this.startingPos.distanceTo(hitPos);
-        boolean headshot = target != null && this.getBoundingBox().intersects(new Box(target.getEyePos(), target.getEyePos()).expand(target.getWidth(), 0.01f, target.getWidth()));
-        if (this.getOwner() instanceof PlayerEntity player && player instanceof CardHolder holder) {
-            holder.ntrdeal$getLayeredCards().forEach(entry -> entry.getKey().damageModifier(player, target, damage, distance, headshot, entry.getValue()));
-        }
-        if (target instanceof PlayerEntity player && player instanceof CardHolder holder) {
-            holder.ntrdeal$getLayeredCards().forEach(entry -> entry.getKey().incomingDamageModifier(player, this.getOwner(), damage, distance, headshot, entry.getValue()));
-        }
-        System.out.println(headshot);
-        return Math.max(damage.getValue(), 1f);
+    public float getBulletDamage(Entity entity, Vec3d hitPos) {
+        if (this.getOwner() instanceof LivingEntity attacker && entity instanceof LivingEntity target) {
+            DamageData data = new DamageData(14f, 1.5f, this.startingPos, hitPos, this, attacker, target);
+            return Math.max(data.getTotalDamage(), 0f);
+        } else return 14f;
     }
 
     @Override
@@ -132,5 +126,56 @@ public class BulletEntity extends PersistentProjectileEntity {
     @Override
     public boolean shouldRender(double distance) {
         return true;
+    }
+
+    public static class DamageData {
+        public final float damage;
+        public final float headshotMultiplier;
+        public final double distance;
+        public final boolean headshot;
+        public final LivingEntity attacker, target;
+
+        public DamageData(float damage, float headshotMultiplier, Vec3d startPos, Vec3d endPos, ProjectileEntity projectile, LivingEntity attacker, LivingEntity target) {
+            this.damage = damage;
+            this.headshotMultiplier = headshotMultiplier;
+            this.distance = startPos.distanceTo(endPos);
+            this.headshot = projectile.getBoundingBox().intersects(new Box(target.getEyePos(), target.getEyePos()).expand(target.getWidth(), 0.1f, target.getWidth()));
+            this.attacker = attacker;
+            this.target = target;
+        }
+
+        public float getTotalDamage() {
+            return this.getDamage() * this.getMultiplier();
+        }
+
+        public float getDamage() {
+            MutableFloat damage = new MutableFloat(this.damage);
+            if (this.attacker instanceof PlayerEntity player && player instanceof CardHolder holder) {
+                holder.ntrdeal$getLayeredCards().forEach(entry -> entry.getKey().outDamageModifier(this, damage, entry.getValue()));
+            }
+            if (this.target instanceof PlayerEntity player && player instanceof CardHolder holder) {
+                holder.ntrdeal$getLayeredCards().forEach(entry -> entry.getKey().inDamageModifier(this, damage, entry.getValue()));
+            }
+            return damage.getValue();
+        }
+
+        public float getMultiplier() {
+            MutableFloat multiplier = new MutableFloat(1f), headshotMulti = new MutableFloat(this.headshot ? 1.5f : 1f);
+            if (this.attacker instanceof PlayerEntity player && player instanceof CardHolder holder) {
+                holder.ntrdeal$getLayeredCards().forEach(entry -> entry.getKey().outDamageMultiplier(this, multiplier, entry.getValue()));
+            }
+            if (this.target instanceof PlayerEntity player && player instanceof CardHolder holder) {
+                holder.ntrdeal$getLayeredCards().forEach(entry -> entry.getKey().inDamageMultiplier(this, multiplier, entry.getValue()));
+            }
+            if (this.headshot) {
+                if (this.attacker instanceof PlayerEntity player && player instanceof CardHolder holder) {
+                    holder.ntrdeal$getLayeredCards().forEach(entry -> entry.getKey().outHeadshotMultiplier(this, headshotMulti, entry.getValue()));
+                }
+                if (this.target instanceof PlayerEntity player && player instanceof CardHolder holder) {
+                    holder.ntrdeal$getLayeredCards().forEach(entry -> entry.getKey().inHeadshotMultiplier(this, headshotMulti, entry.getValue()));
+                }
+            }
+            return multiplier.getValue() * headshotMulti.getValue();
+        }
     }
 }

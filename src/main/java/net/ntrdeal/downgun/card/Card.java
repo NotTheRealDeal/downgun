@@ -9,6 +9,7 @@ import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.util.Identifier;
+import net.ntrdeal.downgun.entity.custom.BulletEntity;
 import net.ntrdeal.downgun.registry.ModRegistries;
 import org.apache.commons.lang3.mutable.MutableDouble;
 import org.apache.commons.lang3.mutable.MutableFloat;
@@ -31,8 +32,12 @@ public interface Card {
     default void postHit(PlayerEntity player, Entity target, float damage, int level) {}
     default void onHit(PlayerEntity player, DamageSource source, float damage, int level) {}
 
-    default void damageModifier(PlayerEntity player, @Nullable Entity target, MutableFloat damage, double distance, boolean headshot, int level) {}
-    default void incomingDamageModifier(PlayerEntity target, @Nullable Entity attacker, MutableFloat damage, double distance, boolean headshot, int level) {}
+    default void outDamageModifier(BulletEntity.DamageData data, MutableFloat damage, int level) {}
+    default void inDamageModifier(BulletEntity.DamageData data, MutableFloat damage, int level) {}
+    default void outDamageMultiplier(BulletEntity.DamageData data, MutableFloat multiplier, int level) {}
+    default void inDamageMultiplier(BulletEntity.DamageData data, MutableFloat multiplier, int level) {}
+    default void outHeadshotMultiplier(BulletEntity.DamageData data, MutableFloat headshotMulti, int level) {}
+    default void inHeadshotMultiplier(BulletEntity.DamageData data, MutableFloat headshotMulti, int level) {}
     default void gravityModifier(PlayerEntity player, MutableDouble gravity, int level) {}
     default void divergenceModifier(PlayerEntity player, MutableFloat divergence, int level) {}
     default void speedModifier(PlayerEntity player, MutableFloat speed, int level) {}
