@@ -14,6 +14,7 @@ import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.hit.EntityHitResult;
 import net.minecraft.util.math.Box;
+import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import net.ntrdeal.downgun.entity.ModDamageSources;
@@ -79,8 +80,8 @@ public class BulletEntity extends PersistentProjectileEntity {
             if (owner instanceof PlayerEntity player && player instanceof CardHolder holder) {
                 holder.ntrdeal$getCards().forEach((key, value) -> key.postHit(player, entity, damage, value));
             }
+            this.discard();
         }
-        this.discard();
     }
 
     @Override
@@ -88,18 +89,26 @@ public class BulletEntity extends PersistentProjectileEntity {
         if (this.getOwner() instanceof PlayerEntity player && player instanceof CardHolder holder) {
             MutableInt maxBounces = new MutableInt(0);
             holder.ntrdeal$getLayeredCards().forEach(entry -> entry.getKey().bounceModifier(player, maxBounces, entry.getValue()));
-            if (this.bounces >= maxBounces.getValue()) this.discard();
-            else {
-                Vec3d velocity = this.getVelocity();
-                if (blockHitResult.getSide().getAxis().isHorizontal()) {
-                    this.setVelocity(-velocity.getX(), velocity.getY(), -velocity.getZ());
-                }
-                if (blockHitResult.getSide().getAxis().isVertical()) {
-                    this.setVelocity(velocity.getX(), -velocity.getY(), velocity.getZ());
-                }
+            if (maxBounces.getValue() >= this.bounces) {
+                reflectVelocity(blockHitResult);
                 this.bounces++;
-            }
+            } else this.discard();
         } else this.discard();
+    }
+
+    private void reflectVelocity(BlockHitResult blockHitResult) {
+        Direction direction = blockHitResult.getSide();
+        Vec3d velocity = this.getVelocity();
+        if (direction.getAxis() == Direction.Axis.X) {
+            velocity = new Vec3d(-velocity.x, velocity.y, velocity.z);
+        }
+        if (direction.getAxis() == Direction.Axis.Y) {
+            velocity = new Vec3d(velocity.x, -velocity.y, velocity.z);
+        }
+        if (direction.getAxis() == Direction.Axis.Z) {
+            velocity = new Vec3d(velocity.x, velocity.y, -velocity.z);
+        }
+        this.setVelocity(velocity);
     }
 
     public float getBulletDamage(Entity entity, Vec3d hitPos) {

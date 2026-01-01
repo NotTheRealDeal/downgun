@@ -9,7 +9,7 @@ public class SuperJumpCard extends AttributeCard {
     public SuperJumpCard() {
         this.addAttribute(EntityAttributes.GENERIC_JUMP_STRENGTH, new AttributeInstance(
                 DownGun.id("super_jump"),
-                (player, level) -> Double.valueOf(level),
+                (player, level) -> level.doubleValue() / 5d,
                 EntityAttributeModifier.Operation.ADD_MULTIPLIED_TOTAL
         ));
     }
