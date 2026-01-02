@@ -3,7 +3,6 @@ package net.ntrdeal.downgun.card.custom.gun;
 import net.minecraft.entity.player.PlayerEntity;
 import net.ntrdeal.downgun.card.Card;
 import net.ntrdeal.downgun.entity.custom.BulletEntity;
-import org.apache.commons.lang3.mutable.MutableDouble;
 import org.apache.commons.lang3.mutable.MutableFloat;
 
 public class HeavyBulletsCard implements Card {
@@ -13,7 +12,7 @@ public class HeavyBulletsCard implements Card {
     }
 
     @Override
-    public void gravityModifier(PlayerEntity player, MutableDouble gravity, int level) {
-        gravity.add(0.05d * level);
+    public void gravityModifier(PlayerEntity player, MutableFloat gravity, int level) {
+        gravity.add(0.025f * level);
     }
 }

@@ -11,7 +11,7 @@ public class ModEntities {
 
     public static final EntityType<BulletEntity> BULLET_ENTITY = Registry.register(Registries.ENTITY_TYPE, DownGun.id("bullet"),
             EntityType.Builder.<BulletEntity>create(BulletEntity::new, SpawnGroup.MISC).dimensions(0.375f, 0.375f)
-                    .maxTrackingRange(4).trackingTickInterval(1).build());
+                    .trackingTickInterval(Integer.MAX_VALUE).build());
 
     public static void register() {}
 }

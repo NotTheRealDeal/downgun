@@ -11,7 +11,6 @@ import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.util.Identifier;
 import net.ntrdeal.downgun.entity.custom.BulletEntity;
 import net.ntrdeal.downgun.registry.ModRegistries;
-import org.apache.commons.lang3.mutable.MutableDouble;
 import org.apache.commons.lang3.mutable.MutableFloat;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.jetbrains.annotations.Nullable;
@@ -38,7 +37,7 @@ public interface Card {
     default void inDamageMultiplier(BulletEntity.DamageData data, MutableFloat multiplier, int level) {}
     default void outHeadshotMultiplier(BulletEntity.DamageData data, MutableFloat headshotMulti, int level) {}
     default void inHeadshotMultiplier(BulletEntity.DamageData data, MutableFloat headshotMulti, int level) {}
-    default void gravityModifier(PlayerEntity player, MutableDouble gravity, int level) {}
+    default void gravityModifier(PlayerEntity player, MutableFloat gravity, int level) {}
     default void divergenceModifier(PlayerEntity player, MutableFloat divergence, int level) {}
     default void speedModifier(PlayerEntity player, MutableFloat speed, int level) {}
     default void bounceModifier(PlayerEntity player, MutableInt bounces, int level) {}

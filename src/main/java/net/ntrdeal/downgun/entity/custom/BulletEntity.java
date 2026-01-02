@@ -5,66 +5,174 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.damage.DamageSource;
+import net.minecraft.entity.data.DataTracker;
+import net.minecraft.entity.data.TrackedData;
+import net.minecraft.entity.data.TrackedDataHandlerRegistry;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.projectile.PersistentProjectileEntity;
 import net.minecraft.entity.projectile.ProjectileEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
+import net.minecraft.nbt.NbtCompound;
+import net.minecraft.nbt.NbtOps;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.hit.EntityHitResult;
+import net.minecraft.util.hit.HitResult;
 import net.minecraft.util.math.Box;
 import net.minecraft.util.math.Direction;
+import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.world.RaycastContext;
 import net.minecraft.world.World;
 import net.ntrdeal.downgun.entity.ModDamageSources;
 import net.ntrdeal.downgun.entity.ModEntities;
 import net.ntrdeal.downgun.misc.CardHolder;
-import org.apache.commons.lang3.mutable.MutableDouble;
 import org.apache.commons.lang3.mutable.MutableFloat;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.jetbrains.annotations.Nullable;
+import org.joml.Vector3f;
 
 public class BulletEntity extends PersistentProjectileEntity {
-    public Vec3d startingPos = Vec3d.ZERO;
+    public static final TrackedData<Vector3f> STARTING_POSITION = DataTracker.registerData(BulletEntity.class, TrackedDataHandlerRegistry.VECTOR3F);
+    public static final TrackedData<Vector3f> NORMALIZED_MOVEMENT = DataTracker.registerData(BulletEntity.class, TrackedDataHandlerRegistry.VECTOR3F);
+    public static final TrackedData<Float> SPEED = DataTracker.registerData(BulletEntity.class, TrackedDataHandlerRegistry.FLOAT);
+    public static final TrackedData<Float> GRAVITY = DataTracker.registerData(BulletEntity.class, TrackedDataHandlerRegistry.FLOAT);
+    public static final TrackedData<Integer> MAX_BOUNCES = DataTracker.registerData(BulletEntity.class, TrackedDataHandlerRegistry.INTEGER);
+
     public int bounces = 0;
+    public int posAge = 0;
     public final boolean multishotBullet;
+    public boolean leftOwner = false;
 
     public BulletEntity(EntityType<BulletEntity> type, World world) {
         super(type, world);
         this.multishotBullet = true;
         this.pickupType = PickupPermission.DISALLOWED;
+        this.dataTracker.set(STARTING_POSITION, this.getPos().toVector3f());
     }
 
     public BulletEntity(double x, double y, double z, World world) {
         super(ModEntities.BULLET_ENTITY, x, y, z, world, Items.IRON_NUGGET.getDefaultStack(), Items.IRON_NUGGET.getDefaultStack());
         this.multishotBullet = true;
         this.pickupType = PickupPermission.DISALLOWED;
-        this.startingPos = this.getPos();
+        this.dataTracker.set(STARTING_POSITION, this.getPos().toVector3f());
     }
 
-    public BulletEntity(LivingEntity owner, World world, @Nullable ItemStack shotFrom, float speed, float divergence, boolean multishot) {
+    public BulletEntity(LivingEntity owner, World world, @Nullable ItemStack shotFrom, float speed, float gravity, int maxBounces, float divergence, boolean multishot) {
         super(ModEntities.BULLET_ENTITY, owner, world, Items.IRON_NUGGET.getDefaultStack(), shotFrom);
         this.multishotBullet = multishot;
         this.pickupType = PickupPermission.DISALLOWED;
-        this.startingPos = this.getPos();
-        this.setVelocity(owner, owner.getPitch(), owner.getYaw(), 0f, speed, divergence);
+
+        this.dataTracker.set(STARTING_POSITION, this.getPos().toVector3f());
+        this.dataTracker.set(NORMALIZED_MOVEMENT, this.getStartingVelocity(owner, divergence).toVector3f());
+        this.dataTracker.set(SPEED, speed * 0.05f);
+        this.dataTracker.set(GRAVITY, gravity);
+        this.dataTracker.set(MAX_BOUNCES, maxBounces);
 
         if (!this.multishotBullet) {
             MutableInt multishotCount = new MutableInt(0);
             if (this.getOwner() instanceof PlayerEntity player && player instanceof CardHolder holder) {
                 holder.ntrdeal$getLayeredCards().forEach(entry -> entry.getKey().shootCountModifier(player, multishotCount, entry.getValue()));
-                for (int count = 0; count < multishotCount.getValue(); count++) {
-                    world.spawnEntity(new BulletEntity(player, world, shotFrom, speed, divergence, true));
-                }
+            }
+            for (int count = 0; count < multishotCount.getValue(); count++) {
+                world.spawnEntity(new BulletEntity(owner, world, shotFrom, speed, gravity, maxBounces, divergence, true));
             }
         }
     }
 
     @Override
+    protected void initDataTracker(DataTracker.Builder builder) {
+        super.initDataTracker(builder);
+        builder.add(STARTING_POSITION, new Vector3f());
+        builder.add(NORMALIZED_MOVEMENT, new Vector3f());
+        builder.add(SPEED, 25f);
+        builder.add(GRAVITY, 0f);
+        builder.add(MAX_BOUNCES, 0);
+    }
+
+    @Override
     public void tick() {
-        if (this.age >= 500) this.discard();
-        super.tick();
+        if (this.age > 750) this.discard();
+        this.baseTick();
+        if (!this.leftOwner) this.leftOwner = this.shouldLeaveOwner();
+        Vec3d pos = this.startingPos().add(this.normalMovement().multiply(this.speed() * this.posAge))
+                .add(0d, -this.gravity() * this.posAge * this.posAge * 0.5f, 0d);
+        HitResult hitResult = this.getWorld().raycast(new RaycastContext(this.getPos(), pos, RaycastContext.ShapeType.COLLIDER, RaycastContext.FluidHandling.NONE, this));
+        if (hitResult.getType() != HitResult.Type.MISS) pos = hitResult.getPos();
+        if (this.getEntityCollision(this.getPos(), pos) instanceof EntityHitResult result) hitResult = result.getEntity().canHit() && result.getEntity().isAlive() ? result : null;
+        if (hitResult != null) this.hitOrDeflect(hitResult);
+        this.updatePosition(pos.getX(), pos.getY(), pos.getZ());
+        this.posAge++;
+    }
+
+    public Vec3d getStartingVelocity(Entity shooter, float divergence) {
+        float f = -MathHelper.sin(shooter.getYaw() * (float) (Math.PI / 180.0)) * MathHelper.cos(shooter.getPitch() * (float) (Math.PI / 180.0));
+        float g = -MathHelper.sin(shooter.getPitch() * (float) (Math.PI / 180.0));
+        float h = MathHelper.cos(shooter.getYaw() * (float) (Math.PI / 180.0)) * MathHelper.cos(shooter.getPitch() * (float) (Math.PI / 180.0));
+        return this.calculateVelocity(f, g, h, 1f, divergence);
+    }
+
+    @Override
+    public Vec3d getVelocity() {
+        return this.normalMovement();
+    }
+
+    @Override
+    public boolean canHit(Entity entity) {
+        return entity.canBeHitByProjectile() && this.leftOwner;
+    }
+
+    private boolean shouldLeaveOwner() {
+        Entity owner = this.getOwner();
+        if (owner != null) {
+            for (Entity entity2 : this.getWorld()
+                    .getOtherEntities(this, this.getBoundingBox().stretch(this.getVelocity()).expand(1.0), entity -> !entity.isSpectator() && entity.canHit())) {
+                if (entity2.getRootVehicle() == owner.getRootVehicle()) {
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+
+    public Vec3d startingPos() {
+        return new Vec3d(this.dataTracker.get(STARTING_POSITION));
+    }
+
+    public Vec3d normalMovement() {
+        return new Vec3d(this.dataTracker.get(NORMALIZED_MOVEMENT));
+    }
+
+    public float speed() {
+        return this.dataTracker.get(SPEED);
+    }
+
+    public float gravity() {
+        return this.dataTracker.get(GRAVITY);
+    }
+
+    public int maxBounces() {
+        return this.dataTracker.get(MAX_BOUNCES);
+    }
+
+    @Override
+    public void writeCustomDataToNbt(NbtCompound nbt) {
+        super.writeCustomDataToNbt(nbt);
+        Vec3d.CODEC.encodeStart(NbtOps.INSTANCE, this.startingPos()).result().ifPresent(element -> nbt.put("startingPosition", element));
+        Vec3d.CODEC.encodeStart(NbtOps.INSTANCE, this.normalMovement()).result().ifPresent(element -> nbt.put("normalizedSpeed", element));
+        nbt.putFloat("bulletSpeed", this.speed());
+        nbt.putFloat("gravity", this.gravity());
+    }
+
+    @Override
+    public void readCustomDataFromNbt(NbtCompound nbt) {
+        super.readCustomDataFromNbt(nbt);
+        Vec3d.CODEC.parse(NbtOps.INSTANCE, nbt.get("startingPosition")).result().ifPresent(vec3d -> this.dataTracker.set(STARTING_POSITION, vec3d.toVector3f()));
+        Vec3d.CODEC.parse(NbtOps.INSTANCE, nbt.get("normalizedSpeed")).result().ifPresent(vec3d -> this.dataTracker.set(NORMALIZED_MOVEMENT, vec3d.toVector3f()));
+        this.dataTracker.set(SPEED, nbt.getFloat("bulletSpeed"));
+        this.dataTracker.set(GRAVITY, nbt.getFloat("gravity"));
     }
 
     @Override
@@ -86,13 +194,9 @@ public class BulletEntity extends PersistentProjectileEntity {
 
     @Override
     protected void onBlockHit(BlockHitResult blockHitResult) {
-        if (this.getOwner() instanceof PlayerEntity player && player instanceof CardHolder holder) {
-            MutableInt maxBounces = new MutableInt(0);
-            holder.ntrdeal$getLayeredCards().forEach(entry -> entry.getKey().bounceModifier(player, maxBounces, entry.getValue()));
-            if (maxBounces.getValue() >= this.bounces) {
-                reflectVelocity(blockHitResult);
-                this.bounces++;
-            } else this.discard();
+        if (this.bounces < this.maxBounces()) {
+            reflectVelocity(blockHitResult);
+            this.bounces++;
         } else this.discard();
     }
 
@@ -103,28 +207,21 @@ public class BulletEntity extends PersistentProjectileEntity {
             velocity = new Vec3d(-velocity.x, velocity.y, velocity.z);
         }
         if (direction.getAxis() == Direction.Axis.Y) {
-            velocity = new Vec3d(velocity.x, -velocity.y, velocity.z);
+            velocity = new Vec3d(velocity.x, -velocity.y * 1.5d, velocity.z);
         }
         if (direction.getAxis() == Direction.Axis.Z) {
             velocity = new Vec3d(velocity.x, velocity.y, -velocity.z);
         }
-        this.setVelocity(velocity);
+        this.dataTracker.set(STARTING_POSITION, blockHitResult.getPos().add(Vec3d.of(direction.getVector()).multiply(0.1d)).toVector3f());
+        this.dataTracker.set(NORMALIZED_MOVEMENT, velocity.toVector3f());
+        this.posAge = 0;
     }
 
     public float getBulletDamage(Entity entity, Vec3d hitPos) {
         if (this.getOwner() instanceof LivingEntity attacker && entity instanceof LivingEntity target) {
-            DamageData data = new DamageData(14f, 1.5f, this.startingPos, hitPos, this, attacker, target);
+            DamageData data = new DamageData(14f, 1.5f, this.startingPos(), hitPos, this, attacker, target);
             return Math.max(data.getTotalDamage(), 0f);
         } else return 14f;
-    }
-
-    @Override
-    protected double getGravity() {
-        MutableDouble gravity = new MutableDouble(0d);
-        if (this.getOwner() instanceof PlayerEntity player && player instanceof CardHolder holder) {
-            holder.ntrdeal$getLayeredCards().forEach(entry -> entry.getKey().gravityModifier(player, gravity, entry.getValue()));
-        }
-        return gravity.getValue();
     }
 
     @Override

@@ -14,6 +14,7 @@ import net.ntrdeal.downgun.card.Card;
 import net.ntrdeal.downgun.entity.custom.BulletEntity;
 import net.ntrdeal.downgun.misc.CardHolder;
 import org.apache.commons.lang3.mutable.MutableFloat;
+import org.apache.commons.lang3.mutable.MutableInt;
 
 import java.util.List;
 import java.util.Map;
@@ -28,10 +29,13 @@ public class TestingGunItem extends Item implements ProjectileItem {
         ItemStack stack = player.getStackInHand(hand);
         if (!world.isClient() && player instanceof CardHolder holder) {
             List<Map.Entry<Card, Integer>> layeredCards = holder.ntrdeal$getLayeredCards();
-            MutableFloat divergence = new MutableFloat(2.5f), speed = new MutableFloat(2.5f);
+            MutableFloat divergence = new MutableFloat(2.5f), speed = new MutableFloat(25f), gravity = new MutableFloat(0f);
+            MutableInt maxBounces = new MutableInt(0);
             layeredCards.forEach(entry -> entry.getKey().divergenceModifier(player, divergence, entry.getValue()));
             layeredCards.forEach(entry -> entry.getKey().speedModifier(player, speed, entry.getValue()));
-            world.spawnEntity(new BulletEntity(player, world, stack, speed.getValue(), Math.max(divergence.getValue(), 0f), false));
+            layeredCards.forEach(entry -> entry.getKey().gravityModifier(player, gravity, entry.getValue()));
+            layeredCards.forEach(entry -> entry.getKey().bounceModifier(player, maxBounces, entry.getValue()));
+            world.spawnEntity(new BulletEntity(player, world, stack, speed.getValue(), gravity.getValue(), maxBounces.getValue(), Math.max(divergence.getValue(), 0f), false));
         }
         return TypedActionResult.success(stack);
     }
