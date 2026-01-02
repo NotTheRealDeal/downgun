@@ -10,7 +10,7 @@ import net.ntrdeal.downgun.entity.custom.BulletEntity;
 public class ModEntities {
 
     public static final EntityType<BulletEntity> BULLET_ENTITY = Registry.register(Registries.ENTITY_TYPE, DownGun.id("bullet"),
-            EntityType.Builder.<BulletEntity>create(BulletEntity::new, SpawnGroup.MISC).dimensions(0.375f, 0.375f)
+            EntityType.Builder.<BulletEntity>create(BulletEntity::new, SpawnGroup.MISC).dimensions(0.3125f, 0.3125f)
                     .trackingTickInterval(Integer.MAX_VALUE).build());
 
     public static void register() {}

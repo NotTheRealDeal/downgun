@@ -21,8 +21,8 @@ public class BulletEntityModel extends EntityModel<BulletEntity> {
 
 	public static TexturedModelData getTexturedModelData() {
 		ModelData modelData = new ModelData();
-		modelData.getRoot().addChild("cube", ModelPartBuilder.create().uv(0, 0).cuboid(-3f, 0f, -3f, 6f, 6f, 6f), ModelTransform.NONE);
-		return TexturedModelData.of(modelData, 24, 24);
+		modelData.getRoot().addChild("cube", ModelPartBuilder.create().uv(0, 0).cuboid(-2.5f, 0f, -2.5f, 5f, 5f, 5f), ModelTransform.NONE);
+		return TexturedModelData.of(modelData, 20, 20);
 	}
 
 	@Override

@@ -20,6 +20,7 @@ public class ModCards {
     public static final HealthBoostCard HEALTH_BOOST = register("health_boost", new HealthBoostCard());
     public static final MultishotCard MULTISHOT = register("multishot", new MultishotCard());
     public static final HelmetCard HELMET = register("helmet", new HelmetCard());
+    public static final HealingBulletsCard HEALING_BULLETS = register("healing_bullets", new HealingBulletsCard());
 
     public static <T extends Card> T register(String name, T card) {
         return Registry.register(ModRegistries.CARDS, DownGun.id(name), card);

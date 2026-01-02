@@ -1,7 +1,6 @@
 package net.ntrdeal.downgun.card;
 
 import com.mojang.serialization.Codec;
-import net.minecraft.entity.Entity;
 import net.minecraft.entity.attribute.EntityAttribute;
 import net.minecraft.entity.attribute.EntityAttributeInstance;
 import net.minecraft.entity.attribute.EntityAttributeModifier;
@@ -9,6 +8,7 @@ import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.util.Identifier;
+import net.ntrdeal.downgun.component.CardHolderComponent;
 import net.ntrdeal.downgun.entity.custom.BulletEntity;
 import net.ntrdeal.downgun.registry.ModRegistries;
 import org.apache.commons.lang3.mutable.MutableFloat;
@@ -20,7 +20,7 @@ import java.util.Map;
 import java.util.function.BiFunction;
 
 public interface Card {
-    Codec<Map<Card, Integer>> CARD_MAP_CODEC = Codec.unboundedMap(ModRegistries.CARDS_CODEC, Codec.INT).xmap(HashMap::new, Map::copyOf);
+    Codec<Map<Card, Integer>> CARD_MAP_CODEC = Codec.unboundedMap(ModRegistries.CARDS_CODEC, Codec.INT).xmap(HashMap::new, map -> map);
 
     default int layer() {
         return 0;
@@ -28,7 +28,7 @@ public interface Card {
 
     default void tick(PlayerEntity player, int level) {}
 
-    default void postHit(PlayerEntity player, Entity target, float damage, int level) {}
+    default void postHit(BulletEntity.DamageData data, int level) {}
     default void onHit(PlayerEntity player, DamageSource source, float damage, int level) {}
 
     default void outDamageModifier(BulletEntity.DamageData data, MutableFloat damage, int level) {}
@@ -37,11 +37,11 @@ public interface Card {
     default void inDamageMultiplier(BulletEntity.DamageData data, MutableFloat multiplier, int level) {}
     default void outHeadshotMultiplier(BulletEntity.DamageData data, MutableFloat headshotMulti, int level) {}
     default void inHeadshotMultiplier(BulletEntity.DamageData data, MutableFloat headshotMulti, int level) {}
-    default void gravityModifier(PlayerEntity player, MutableFloat gravity, int level) {}
-    default void divergenceModifier(PlayerEntity player, MutableFloat divergence, int level) {}
-    default void speedModifier(PlayerEntity player, MutableFloat speed, int level) {}
-    default void bounceModifier(PlayerEntity player, MutableInt bounces, int level) {}
-    default void shootCountModifier(PlayerEntity player, MutableInt count, int level) {}
+    default void gravityModifier(CardHolderComponent holder, MutableFloat gravity, int level) {}
+    default void divergenceModifier(CardHolderComponent holder, MutableFloat divergence, int level) {}
+    default void speedModifier(CardHolderComponent holder, MutableFloat speed, int level) {}
+    default void bounceModifier(CardHolderComponent holder, MutableInt bounces, int level) {}
+    default void shootCountModifier(CardHolderComponent holder, MutableInt count, int level) {}
 
     @Nullable
     default Map<RegistryEntry<EntityAttribute>, AttributeInstance> attributeMap() {

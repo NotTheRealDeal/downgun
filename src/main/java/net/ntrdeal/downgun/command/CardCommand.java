@@ -15,15 +15,11 @@ import net.minecraft.registry.RegistryKey;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.ntrdeal.downgun.card.Card;
-import net.ntrdeal.downgun.misc.CardHolder;
+import net.ntrdeal.downgun.component.ModComponents;
 import net.ntrdeal.downgun.registry.ModRegistryKeys;
 
 public class CardCommand {
-
-    public static final SuggestionProvider<ServerCommandSource> SUGGESTION_PROVIDER = (context, builder) -> {
-        PlayerEntity player = EntityArgumentType.getPlayer(context, "player");
-        return CommandSource.suggestIdentifiers(((CardHolder)player).ntrdeal$getCardKeys().stream().map(RegistryKey::getValue), builder);
-    };
+    public static final SuggestionProvider<ServerCommandSource> SUGGESTION_PROVIDER = (context, builder) -> CommandSource.suggestIdentifiers(ModComponents.CARD_HOLDER.get(EntityArgumentType.getPlayer(context, "player")).getCardKeys().stream().map(RegistryKey::getValue), builder);
 
     public static void register(CommandDispatcher<ServerCommandSource> dispatcher, CommandRegistryAccess access) {
         LiteralCommandNode<ServerCommandSource> cards = CommandManager.literal("cards").build();
@@ -68,26 +64,14 @@ public class CardCommand {
 
 
     public static int addCard(PlayerEntity player, Card card, int level) {
-        if (player instanceof CardHolder holder && holder.ntrdeal$AddCard(card, level)) {
-            return 1;
-        } else {
-            return 0;
-        }
+        return ModComponents.CARD_HOLDER.get(player).addCard(card, level) ? 1 : 0;
     }
 
     public static int removeCard(PlayerEntity player, Card card) {
-        if (player instanceof CardHolder holder && holder.ntrdeal$removeCard(card)) {
-            return 1;
-        } else {
-            return 0;
-        }
+        return ModComponents.CARD_HOLDER.get(player).removeCard(card) ? 1 : 0;
     }
 
     public static int clearCards(PlayerEntity player) {
-        if (player instanceof CardHolder holder && holder.ntrdeal$resetCards()) {
-            return 1;
-        } else {
-            return 0;
-        }
+        return ModComponents.CARD_HOLDER.get(player).clearCards() ? 1 : 0;
     }
 }

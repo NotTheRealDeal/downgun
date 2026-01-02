@@ -11,8 +11,9 @@ import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Position;
 import net.minecraft.world.World;
 import net.ntrdeal.downgun.card.Card;
+import net.ntrdeal.downgun.component.CardHolderComponent;
+import net.ntrdeal.downgun.component.ModComponents;
 import net.ntrdeal.downgun.entity.custom.BulletEntity;
-import net.ntrdeal.downgun.misc.CardHolder;
 import org.apache.commons.lang3.mutable.MutableFloat;
 import org.apache.commons.lang3.mutable.MutableInt;
 
@@ -27,14 +28,15 @@ public class TestingGunItem extends Item implements ProjectileItem {
     @Override
     public TypedActionResult<ItemStack> use(World world, PlayerEntity player, Hand hand) {
         ItemStack stack = player.getStackInHand(hand);
-        if (!world.isClient() && player instanceof CardHolder holder) {
-            List<Map.Entry<Card, Integer>> layeredCards = holder.ntrdeal$getLayeredCards();
+        CardHolderComponent component = ModComponents.CARD_HOLDER.get(player);
+        if (!world.isClient()) {
+            List<Map.Entry<Card, Integer>> layeredCards = component.getLayeredCards();
             MutableFloat divergence = new MutableFloat(2.5f), speed = new MutableFloat(25f), gravity = new MutableFloat(0f);
             MutableInt maxBounces = new MutableInt(0);
-            layeredCards.forEach(entry -> entry.getKey().divergenceModifier(player, divergence, entry.getValue()));
-            layeredCards.forEach(entry -> entry.getKey().speedModifier(player, speed, entry.getValue()));
-            layeredCards.forEach(entry -> entry.getKey().gravityModifier(player, gravity, entry.getValue()));
-            layeredCards.forEach(entry -> entry.getKey().bounceModifier(player, maxBounces, entry.getValue()));
+            layeredCards.forEach(entry -> entry.getKey().divergenceModifier(component, divergence, entry.getValue()));
+            layeredCards.forEach(entry -> entry.getKey().speedModifier(component, speed, entry.getValue()));
+            layeredCards.forEach(entry -> entry.getKey().gravityModifier(component, gravity, entry.getValue()));
+            layeredCards.forEach(entry -> entry.getKey().bounceModifier(component, maxBounces, entry.getValue()));
             world.spawnEntity(new BulletEntity(player, world, stack, speed.getValue(), gravity.getValue(), maxBounces.getValue(), Math.max(divergence.getValue(), 0f), false));
         }
         return TypedActionResult.success(stack);

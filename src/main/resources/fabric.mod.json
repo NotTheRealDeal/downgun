@@ -23,6 +23,14 @@
 		],
 		"fabric-datagen": [
 			"net.ntrdeal.downgun.DownGunDataGenerator"
+		],
+		"cardinal-components-entity": [
+			"net.ntrdeal.downgun.component.ModComponents"
+		]
+	},
+	"custom": {
+		"cardinal-components":[
+			"downgun:card_holder"
 		]
 	},
 	"mixins": [
@@ -32,6 +40,8 @@
 		"fabricloader": ">=0.18.4",
 		"minecraft": "~1.21.1",
 		"java": ">=21",
-		"fabric-api": "*"
+		"fabric-api": "*",
+		"cardinal-components-base": ">=6.1.3",
+		"cardinal-components-entity": ">=6.1.3"
 	}
 }
