@@ -10,7 +10,6 @@ import net.minecraft.entity.data.TrackedData;
 import net.minecraft.entity.data.TrackedDataHandlerRegistry;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.projectile.PersistentProjectileEntity;
-import net.minecraft.entity.projectile.ProjectileEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.nbt.NbtCompound;
@@ -19,23 +18,18 @@ import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.hit.EntityHitResult;
 import net.minecraft.util.hit.HitResult;
-import net.minecraft.util.math.Box;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.RaycastContext;
 import net.minecraft.world.World;
-import net.ntrdeal.downgun.card.Card;
 import net.ntrdeal.downgun.component.CardHolderComponent;
 import net.ntrdeal.downgun.component.ModComponents;
 import net.ntrdeal.downgun.entity.ModDamageSources;
 import net.ntrdeal.downgun.entity.ModEntities;
-import org.apache.commons.lang3.mutable.MutableFloat;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3f;
-
-import java.util.Objects;
 
 public class BulletEntity extends PersistentProjectileEntity {
     public static final TrackedData<Vector3f> STARTING_POSITION = DataTracker.registerData(BulletEntity.class, TrackedDataHandlerRegistry.VECTOR3F);
@@ -103,6 +97,7 @@ public class BulletEntity extends PersistentProjectileEntity {
     public void tick() {
         if (this.age > 750) this.discard();
         this.baseTick();
+        if (this.holder != null) this.holder.forEach((card, level) -> card.bulletTick(this.holder, this, level));
         if (!this.leftOwner) this.leftOwner = this.shouldLeaveOwner();
         Vec3d pos = this.startingPos().add(this.normalMovement().multiply(this.speed() * this.posAge))
                 .add(0d, -this.gravity() * this.posAge * this.posAge * 0.5f, 0d);
@@ -188,7 +183,7 @@ public class BulletEntity extends PersistentProjectileEntity {
         Entity entity = entityHitResult.getEntity();
         DamageSource damageSource = ModDamageSources.of(this).bullet(this, this.getOwner());
         ServerWorld world = this.getWorld() instanceof ServerWorld serverWorld ? serverWorld : null;
-        DamageData data = this.getOwner() instanceof LivingEntity attacker && entity instanceof LivingEntity target ? new DamageData(14f, 1.5f, this.startingPos(), entityHitResult.getPos(), this, attacker, target) : null;
+        DamageData data = this.getOwner() instanceof LivingEntity attacker && entity instanceof LivingEntity target ? new DamageData(14f, 1.5f, this.startingPos(), entityHitResult.getPos(), this, damageSource, attacker, target) : null;
         float damage = data != null ? Math.max(data.getTotalDamage(), 0f) : 14f;
         Entity owner = this.getOwner();
         if (entity.damage(damageSource, damage)) {
@@ -234,70 +229,5 @@ public class BulletEntity extends PersistentProjectileEntity {
     @Override
     public boolean shouldRender(double distance) {
         return true;
-    }
-
-    public static class DamageData {
-        public final float damage, headshotMultiplier;
-        public final double distance;
-        public final boolean headshot, teammate;
-        public final LivingEntity attacker, target;
-
-        public final @Nullable CardHolderComponent attackerHolder, targetHolder;
-
-        public DamageData(float damage, float headshotMultiplier, Vec3d startPos, Vec3d endPos, ProjectileEntity projectile, LivingEntity attacker, LivingEntity target) {
-            this.damage = damage;
-            this.headshotMultiplier = headshotMultiplier;
-            this.distance = startPos.distanceTo(endPos);
-            this.headshot = projectile.getBoundingBox().intersects(new Box(target.getEyePos(), target.getEyePos()).expand(target.getWidth(), 0.1f, target.getWidth()));
-            this.attacker = attacker;
-            this.target = target;
-
-            this.teammate = this.attacker.isTeammate(this.target);
-
-            if (this.attacker instanceof PlayerEntity player) this.attackerHolder = ModComponents.CARD_HOLDER.get(player);
-            else this.attackerHolder = null;
-            if (this.target instanceof PlayerEntity player) this.targetHolder = ModComponents.CARD_HOLDER.get(player);
-            else this.targetHolder = null;
-        }
-
-        public float getTotalDamage() {
-            return this.getDamage() * this.getMultiplier();
-        }
-
-        public float getDamage() {
-            MutableFloat damage = new MutableFloat(this.damage);
-            if (this.attackerHolder != null) this.attackerHolder.getLayeredCards().forEach(entry -> entry.getKey().outDamageModifier(this, damage, entry.getValue()));
-            if (this.targetHolder != null) this.targetHolder.getLayeredCards().forEach(entry -> entry.getKey().inDamageModifier(this, damage, entry.getValue()));
-            return damage.getValue();
-        }
-
-        public float getMultiplier() {
-            MutableFloat multiplier = new MutableFloat(1f), headshotMulti = new MutableFloat(this.headshot ? 1.5f : 1f);
-            if (this.attackerHolder != null) this.attackerHolder.getLayeredCards().forEach(entry -> entry.getKey().outDamageMultiplier(this, multiplier, entry.getValue()));
-            if (this.targetHolder != null) this.targetHolder.getLayeredCards().forEach(entry -> entry.getKey().inDamageMultiplier(this, multiplier, entry.getValue()));
-            if (this.headshot) {
-                if (this.attackerHolder != null) this.attackerHolder.getLayeredCards().forEach(entry -> entry.getKey().outHeadshotMultiplier(this, headshotMulti, entry.getValue()));
-                if (this.targetHolder != null) this.targetHolder.getLayeredCards().forEach(entry -> entry.getKey().inHeadshotMultiplier(this, headshotMulti, entry.getValue()));
-            }
-            return multiplier.getValue() * headshotMulti.getValue();
-        }
-
-        public boolean attackerHas(Card card) {
-            return this.attackerHas(card, null);
-        }
-
-        public boolean attackerHas(Card card, @Nullable Integer level) {
-            if (level != null) return this.attackerHolder != null && Objects.equals(this.attackerHolder.cards.get(card), level);
-            else return this.attackerHolder != null && this.attackerHolder.cards.containsKey(card);
-        }
-
-        public boolean targetHas(Card card) {
-            return this.targetHas(card, null);
-        }
-
-        public boolean targetHas(Card card, @Nullable Integer level) {
-            if (level != null) return this.targetHolder != null && Objects.equals(this.targetHolder.cards.get(card), level);
-            else return this.targetHolder != null && this.targetHolder.cards.containsKey(card);
-        }
     }
 }

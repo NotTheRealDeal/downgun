@@ -53,9 +53,13 @@ public class CardHolderComponent implements AutoSyncedComponent, CommonTickingCo
         return this.cards.layeredCards();
     }
 
+    public boolean has(Card card) {
+        return this.cards.containsKey(card);
+    }
+
     @Override
     public void tick() {
-        this.getLayeredCards().forEach(entry -> entry.getKey().tick(this.player, entry.getValue()));
+        this.getLayeredCards().forEach(entry -> entry.getKey().tick(this, entry.getValue()));
     }
 
     @Override

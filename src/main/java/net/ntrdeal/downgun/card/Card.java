@@ -6,10 +6,11 @@ import net.minecraft.entity.attribute.EntityAttributeInstance;
 import net.minecraft.entity.attribute.EntityAttributeModifier;
 import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.projectile.ProjectileEntity;
 import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.util.Identifier;
 import net.ntrdeal.downgun.component.CardHolderComponent;
-import net.ntrdeal.downgun.entity.custom.BulletEntity;
+import net.ntrdeal.downgun.entity.custom.DamageData;
 import net.ntrdeal.downgun.registry.ModRegistries;
 import org.apache.commons.lang3.mutable.MutableFloat;
 import org.apache.commons.lang3.mutable.MutableInt;
@@ -26,17 +27,18 @@ public interface Card {
         return 0;
     }
 
-    default void tick(PlayerEntity player, int level) {}
+    default void tick(CardHolderComponent holder, int level) {}
+    default void bulletTick(CardHolderComponent component, ProjectileEntity bullet, int level) {}
 
-    default void postHit(BulletEntity.DamageData data, int level) {}
+    default void postHit(DamageData data, int level) {}
     default void onHit(PlayerEntity player, DamageSource source, float damage, int level) {}
 
-    default void outDamageModifier(BulletEntity.DamageData data, MutableFloat damage, int level) {}
-    default void inDamageModifier(BulletEntity.DamageData data, MutableFloat damage, int level) {}
-    default void outDamageMultiplier(BulletEntity.DamageData data, MutableFloat multiplier, int level) {}
-    default void inDamageMultiplier(BulletEntity.DamageData data, MutableFloat multiplier, int level) {}
-    default void outHeadshotMultiplier(BulletEntity.DamageData data, MutableFloat headshotMulti, int level) {}
-    default void inHeadshotMultiplier(BulletEntity.DamageData data, MutableFloat headshotMulti, int level) {}
+    default void outDamageModifier(DamageData data, MutableFloat damage, int level) {}
+    default void inDamageModifier(DamageData data, MutableFloat damage, int level) {}
+    default void outDamageMultiplier(DamageData data, MutableFloat multiplier, int level) {}
+    default void inDamageMultiplier(DamageData data, MutableFloat multiplier, int level) {}
+    default void outHeadshotMultiplier(DamageData data, MutableFloat headshotMulti, int level) {}
+    default void inHeadshotMultiplier(DamageData data, MutableFloat headshotMulti, int level) {}
     default void gravityModifier(CardHolderComponent holder, MutableFloat gravity, int level) {}
     default void divergenceModifier(CardHolderComponent holder, MutableFloat divergence, int level) {}
     default void speedModifier(CardHolderComponent holder, MutableFloat speed, int level) {}
